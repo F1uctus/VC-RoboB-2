@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--AvailableCommands.xml-->
+<!--This should be in the same folder as the plugin dll-->
+<AvailableCommands>
+    <command>
+        <name>Serial</name>
+        <commandString />
+        <info>
+            <params />
+            <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial</helplink>
+            <description>
+                <default>Communicate with Serial/COM port compatible devices, such as Arduino.
+
+When you open the serial port, plugin generates "Serial.Received" event with port name in payload {1} and message in payload {2} every time device sends message on port.
+This event can be disabled in plugin options window.</default>
+            </description>
+        </info>
+        <command>
+            <name>Open</name>
+            <commandString>Serial.Open</commandString>
+            <info>
+                <params>1-3</params>
+                <parameter name="Port name RegEx pattern." type="string" optional="False" />
+                <parameter name="Baud rate to connect at." type="integer" optional="False">Default: 9600</parameter>
+                <parameter name="DTR - Restart microcontroller after connection." type="boolean" optional="False">Default: False</parameter>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Open</helplink>
+                <description>
+                    <default>Opens and selects first port with name matching the &lt;Port name RegEx pattern&gt;.
+If you want to select one from list of opened ports, you can omit parameters starting from 2.
+After opening port you can handle incoming messages with "Serial.Received" event.
+Actions "Close", "Write" and "Micro.Upload" will work with port, selected by this action.</default>
+                </description>
+            </info>
+        </command>
+        <command>
+            <name>Close</name>
+            <commandString>Serial.Close</commandString>
+            <info>
+                <params>0</params>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Close</helplink>
+                <description>
+                    <default>Closes current selected port.</default>
+                </description>
+            </info>
+        </command>
+        <command>
+            <name>Write</name>
+            <commandString>Serial.Write</commandString>
+            <info>
+                <params>1</params>
+                <parameter name="Message to send on selected port." type="string" optional="False" />
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Write</helplink>
+                <description>
+                    <default>Sends a message on selected port.</default>
+                </description>
+            </info>
+        </command>
+        <command>
+            <name>GetPorts</name>
+            <commandString>Serial.GetPorts</commandString>
+            <info>
+                <params>0-2</params>
+                <parameter name="Return more descriptive ports names. Default false." type="boolean" optional="True" />
+                <parameter name="Return only opened ports. Default false." type="boolean" optional="True" />
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#GetPorts</helplink>
+                <description>
+                    <default>Returns a list of available serial ports.</default>
+                </description>
+            </info>
+        </command>
+        <command>
+            <name>Micro</name>
+            <commandString />
+            <info>
+                <params />
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Micro</helplink>
+                <description>
+                    <default>Actions sending commands to microcontrollers, like Arduino and analogues.
+Most actions performing in real-time, using special listener sketch
+on your board that receives commands from VC.
+(But it is not compatible with sketch that was previously loaded on board).
+So, you can write some actions in VC like in Arduino sketch:
+   Serial.Micro.PinMode: UnoR3, 8, OUT
+   Serial.Micro,Tone: UnoR3, 8, 220, 12
+
+Most of them may be unuseful when you use your own sketch that communicates with PC,
+This is just proof-of-concept that you can use VC 
+Documentation of Arduino functions:
+    https://www.arduino.cc/reference/en/#functions</default>
+                </description>
+            </info>
+            <command>
+                <name>Upload</name>
+                <commandString>Serial.Micro.Upload</commandString>
+                <info>
+                    <params>2</params>
+                    <parameter name="Arduino model" type="string" optional="False">UnoR3 | NanoR3 | Micro | Mega1284 | Mega2560</parameter>
+                    <parameter name="Path to .hex sketch" type="string" optional="False">Path to sketch in .HEX format (MUST NOT CONTAIN "with_bootloader")</parameter>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Upload</helplink>
+                    <description>
+                        <default>[Asynchronous action]
+Uploads sketch in ".hex" format to Arduino board on selected port.
+You need to have Arduino IDE for this action.
+Supported models (Case insensitive):
+   UnoR3, NanoR3, Micro, Mega1284, Mega2560.
+How to make .hex file from .ino or .pde sketch?
+   - In Arduino IDE menu, choose "Sketch" -&gt; "Export Compiled Binary", or type Ctrl+Alt+S;
+   - Then go to Sketch -&gt; Show Sketch Folder.
+   2 .hex files will appear in your sketch folder.
+   IMPORTANT: To upload sketch on Arduino, select .hex file, which name does NOT contain "with_bootloader".</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>Mario</name>
+                <commandString>Serial.Micro.Mario</commandString>
+                <info>
+                    <params>2</params>
+                    <parameter name="Arduino model" type="string" optional="False">UnoR3 | NanoR3 | Micro | Mega1284 | Mega2560</parameter>
+                    <parameter name="Buzzer pin" type="string" optional="False">Arduino digital pin with connected buzzer.</parameter>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Mario</helplink>
+                    <description>
+                        <default>[Asynchronous action]
+[Test action. Proof-of-concept that VC can send signals to Arduino in real-time.]
+Uploads command-listening sketch to Arduino and sends commands to play
+"Mario Underworld" music using buzzer connected to specified &lt;Buzzer pin&gt;.
+Supported models (Case insensitive):
+   UnoR3, NanoR3, Micro, Mega1284, Mega2560.</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>PinMode</name>
+                <commandString>Serial.Micro.PinMode</commandString>
+                <info>
+                    <params>3</params>
+                    <parameter name="Arduino model" type="string" optional="False">UnoR3 | NanoR3 | Micro | Mega1284 | Mega2560</parameter>
+                    <parameter name="Pin to set mode on" type="integer" optional="False" />
+                    <parameter name="Mode" type="string" optional="False">In, InPull, Out</parameter>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#PinMode</helplink>
+                    <description>
+                        <default>Sets mode of specified pin on board.
+Modes (ignore case):
+    In, InPull, Out
+Equivalent of:
+    pinMode(pin, mode);
+in Arduino sketch.
+
+More info at:
+    https://www.arduino.cc/reference/en/language/functions/digital-io/pinmode/</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>DigitalRead</name>
+                <commandString>Serial.Micro.DigitalRead</commandString>
+                <info>
+                    <params>2</params>
+                    <parameter name="Arduino  model" type="string" optional="False">UnoR3 | NanoR3 | Micro | Mega1284 | Mega2560</parameter>
+                    <parameter name="Pin to read value from" type="integer" optional="False" />
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#DigitalRead</helplink>
+                    <description>
+                        <default>Reads digital value from specified pin on board.
+Value is "HIGH" or "LOW".
+Value is saved in {LastResult}.
+
+Arduino sketch equivalent:
+    val = digitalRead(pin);
+
+More info at:
+    https://www.arduino.cc/reference/en/language/functions/digital-io/digitalread/</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>AnalogRead</name>
+                <commandString>Serial.Micro.AnalogRead</commandString>
+                <info>
+                    <params>2</params>
+                    <parameter name="Arduino model" type="string" optional="False">UnoR3 | NanoR3 | Micro | Mega1284 | Mega2560</parameter>
+                    <parameter name="Pin to read value from" type="integer" optional="False" />
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#AnalogRead</helplink>
+                    <description>
+                        <default>Reads analog value from specified pin on board.
+Value from 0 to 5 volts returns mapping from 0 to 1023.
+Value is saved in {LastResult}.
+
+Arduino sketch equivalent:
+    val = analogRead(pin);
+
+More info at:
+    https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>DigitalWrite</name>
+                <commandString>Serial.Micro.DigitalWrite</commandString>
+                <info>
+                    <params />
+                    <parameter name="Arduino  model" type="string" optional="False">UnoR3 | NanoR3 | Micro | Mega1284 | Mega2560</parameter>
+                    <parameter name="Pin to write value on." type="integer" optional="False" />
+                    <parameter name="Value to write on pin" type="integer" optional="False" />
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#DigitalWrite</helplink>
+                    <description>
+                        <default>Reads digital value from specified pin on board.
+Value is "HIGH" or "LOW".
+Value is saved in {LastResult}.
+
+Arduino sketch equivalent:
+    val = digitalRead(pin);
+
+More info at:
+    https://www.arduino.cc/reference/en/language/functions/digital-io/digitalread/</default>
+                    </description>
+                </info>
+            </command>
+        </command>
+    </command>
+</AvailableCommands>
