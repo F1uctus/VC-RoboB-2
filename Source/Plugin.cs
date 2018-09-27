@@ -1,11 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Edge;
+using OpenQA.Selenium.IE;
 using PluginInterface;
 
 namespace Browser {
     public class Plugin : IPlugin {
+        private static IWebDriver webDriver;
+        private static IWebElement currentElement; // TODO: use currentElement in actions
 
         internal static CtlMain MainCtl;
 
@@ -45,7 +52,7 @@ namespace Browser {
             get { return HostInstance; }
             set {
                 HostInstance = value;
-                MainCtl      = (CtlMain) MainInterface;
+                MainCtl = (CtlMain)MainInterface;
             }
         }
 
@@ -54,7 +61,7 @@ namespace Browser {
         #endregion
 
         public Plugin() {
-            MainCtl       = new CtlMain();
+            MainCtl = new CtlMain();
             MainInterface = MainCtl;
         }
 
@@ -66,6 +73,7 @@ namespace Browser {
         ///     e.g. udpListener.myHost = this.Host;
         /// </summary>
         public void Initialize() {
+            StartWebDriver();
         }
 
         /// <summary>
@@ -78,20 +86,61 @@ namespace Browser {
         /// <param name="actionParameters">An array of strings representing our action parameters.</param>
         /// <returns>an actionResult</returns>
         public actionResult doAction(string[] actionNameArray, string[] actionParameters) {
-            var          ar            = new actionResult();
+            var ar = new actionResult();
             const string unknownAction = "Unknown " + nameof(Browser) + " plugin action.";
-
             if (actionNameArray.Length < 2) {
                 ar.setError(unknownAction);
                 return ar;
             }
-
+            string actionName1 = actionNameArray[1].ToUpper();
+            if (webDriver == null
+             && actionName1 != "SETUP") {
+                ar.setError("No web browser opened or selected.");
+                return ar;
+            }
             try {
-                switch (actionNameArray[1].ToUpper()) {
-                    case "ACTION": {
+                switch (actionName1) {
+                    // TODO: finish command list
+                    // TODO: check for updates for all web driver executables.
+                    case "GOTOURL": {
                         break;
                     }
-
+                    // window state and location
+                    case "MAXIMIZE": {
+                        break;
+                    }
+                    case "MINIMIZE": {
+                        break;
+                    }
+                    case "FULLSCREEN": {
+                        break;
+                    }
+                    // manipulating tabs
+                    case "SWITCHTAB": {
+                        SwitchWindow(actionParameters[0]);
+                        break;
+                    }
+                    case "CLOSETAB": {
+                        webDriver.Close();
+                        break;
+                    }
+                    case "NEWTAB": {
+                        // SendKeys?
+                        break;
+                    }
+                    case "GETTABS": {
+                        //webDriver.
+                        break;
+                    }
+                    // start/stop
+                    case "START": {
+                        StartWebDriver();
+                        break;
+                    }
+                    case "STOP": {
+                        webDriver.Quit();
+                        break;
+                    }
                     default: {
                         ar.setError(unknownAction);
                         break;
@@ -113,6 +162,44 @@ namespace Browser {
         }
 
         #region Other methods
+
+        internal static void StartWebDriver() {
+            switch (PluginOptions.BrowserType) {
+                case BrowserType.IE: {
+                    webDriver = new InternetExplorerDriver();
+                    break;
+                }
+                case BrowserType.Edge: {
+                    webDriver = new EdgeDriver();
+                    break;
+                }
+                case BrowserType.Chrome: {
+                    webDriver = new ChromeDriver();
+                    break;
+                }
+                default: {
+                    MessageBox.Show(nameof(Browser) + " plugin error: Invalid browser selected.");
+                    break;
+                }
+            }
+        }
+
+        internal static bool SwitchWindow(string titleSubstring) {
+            string currentWindow = webDriver.CurrentWindowHandle;
+            var availableWindows = new List<string>(webDriver.WindowHandles);
+
+            foreach (string w in availableWindows) {
+                if (w != currentWindow) {
+                    webDriver.SwitchTo().Window(w);
+                    if (webDriver.Title.Contains(titleSubstring))
+                        return true;
+
+                    webDriver.SwitchTo().Window(currentWindow);
+
+                }
+            }
+            return false;
+        }
 
         #endregion
     }

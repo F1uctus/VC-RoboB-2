@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Xml;
@@ -12,10 +13,9 @@ namespace Browser {
         private static readonly string optionsPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\Options.xml";
 
         // user-side options
-        public static bool GenEventOnReceive         = true;
+        public static BrowserType BrowserType         = BrowserType.IE;
 
         // internals
-        public const int MaxLogItems = 50;
 
         static PluginOptions() {
             if (File.Exists(optionsPath)) {
@@ -29,8 +29,8 @@ namespace Browser {
             foreach (XmlNode option in optionsXml.DocumentElement.SelectNodes("Option")) {
                 string optionValue = option.Attributes["value"].Value;
                 switch (option.Attributes["name"].Value) {
-                    case nameof(GenEventOnReceive):
-                        bool.TryParse(optionValue, out GenEventOnReceive);
+                    case nameof(BrowserType):
+                        Enum.TryParse(optionValue, out BrowserType);
                         break;
                 }
             }
@@ -45,7 +45,7 @@ namespace Browser {
                 writer.WriteComment("Serial plugin options");
                 writer.WriteStartElement("Options");
                 {
-                    WriteOption(writer, nameof(GenEventOnReceive),         GenEventOnReceive.ToString());
+                    WriteOption(writer, nameof(BrowserType),         BrowserType.ToString("G"));
                 }
                 writer.WriteEndElement(); // options
                 writer.WriteEndDocument();
@@ -58,5 +58,11 @@ namespace Browser {
             writer.WriteAttributeString("value", nodeValue);
             writer.WriteEndElement();
         }
+    }
+
+    public enum BrowserType {
+        IE,
+        Edge,
+        Chrome
     }
 }
