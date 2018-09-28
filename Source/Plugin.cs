@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
@@ -106,13 +107,62 @@ namespace Browser {
                         break;
                     }
                     // window state and location
+                    case "SIZE": {
+                        // get
+                        if (actionParameters.Length == 0) {
+                            var size = webDriver.Manage().Window.Size;
+                            ar.setSuccess($"{size.Width},{size.Height}");
+                        }
+                        // set
+                        else if (actionParameters.Length == 2) {
+                            int width;
+                            if (!int.TryParse(actionParameters[0], out width)) {
+                                ar.setError("Invalid window width.");
+                            }
+                            int height;
+                            if (!int.TryParse(actionParameters[1], out height)) {
+                                ar.setError("Invalid window height.");
+                            }
+                            webDriver.Manage().Window.Size = new Size(width, height);
+                        }
+                        else {
+                            ar.setError("Invalid parameters count.");
+                        }
+                        break;
+                    }
+                    case "LOCATION": {
+                        // get
+                        if (actionParameters.Length == 0) {
+                            var position = webDriver.Manage().Window.Position;
+                            ar.setSuccess($"{position.X},{position.Y}");
+                        }
+                        // set
+                        else if (actionParameters.Length == 2) {
+                            int x;
+                            if (!int.TryParse(actionParameters[0], out x)) {
+                                ar.setError("Invalid X position.");
+                            }
+                            int y;
+                            if (!int.TryParse(actionParameters[1], out y)) {
+                                ar.setError("Invalid Y position.");
+                            }
+                            webDriver.Manage().Window.Position = new Point(x, y);
+                        }
+                        else {
+                            ar.setError("Invalid parameters count.");
+                        }
+                        break;
+                    }
                     case "MAXIMIZE": {
+                        webDriver.Manage().Window.Maximize();
                         break;
                     }
                     case "MINIMIZE": {
+                        webDriver.Manage().Window.Minimize();
                         break;
                     }
                     case "FULLSCREEN": {
+                        webDriver.Manage().Window.FullScreen();
                         break;
                     }
                     // manipulating tabs
@@ -135,10 +185,12 @@ namespace Browser {
                     // start/stop
                     case "START": {
                         StartWebDriver();
+                        ar.setInfo("Web driver started.");
                         break;
                     }
                     case "STOP": {
                         webDriver.Quit();
+                        ar.setInfo("Web driver stopped working.");
                         break;
                     }
                     default: {
