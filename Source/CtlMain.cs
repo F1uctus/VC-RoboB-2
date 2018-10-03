@@ -1,22 +1,44 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Management;
 using System.Windows.Forms;
 
 namespace Browser {
     public partial class CtlMain : UserControl {
-        private const string noPortsFound = "No available ports found.";
-
         public CtlMain() {
             InitializeComponent();
 
+            // Bind combobox to dictionary
+            var browserTypes = new Dictionary<string, BrowserType> {
+                { "Google Chrome (Chromium)", BrowserType.Chrome },
+                { "Internet Explorer", BrowserType.IE }
+            };
 
-        }
+            string winVersionCaption = "";
+            using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem")) {
+                foreach (var o in searcher.Get()) {
+                    var obj = (ManagementObject) o;
+                    winVersionCaption = obj["Caption"].ToString();
+                }
+            }
+            // check for Windows 10
+            if (winVersionCaption.Contains("Windows 10")) {
+                browserTypes.Add("Microsoft Edge", BrowserType.Edge);
+            }
 
-        private void CtlMain_Load(object sender, EventArgs e) {
+            comboBrowserType.DataSource    = new BindingSource(browserTypes, null);
+            comboBrowserType.DisplayMember = "Key";
+            comboBrowserType.ValueMember   = "Value";
+            comboBrowserType.SelectedItem  = browserTypes.First(kvp => kvp.Value == PluginOptions.BrowserType);
         }
 
         private void btSave_Click(object sender, EventArgs e) {
             // receive options from view
+            PluginOptions.BrowserType     = ((KeyValuePair<string, BrowserType>) comboBrowserType.SelectedItem).Value;
+            PluginOptions.LaunchAtStartup = cbLaunchAtStartup.Checked;
+            PluginOptions.LaunchHidden    = cbLaunchHidden.Checked;
 
             // save options
             try {

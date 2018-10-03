@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -10,10 +11,28 @@ namespace Browser {
     /// </summary>
     public static class PluginOptions {
         // this is used to load and save options to the correct folder
-        private static readonly string optionsPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\Options.xml";
+        public static readonly   string PluginPath  = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\";
+        private static readonly  string optionsPath = PluginPath + "Options.xml";
+        internal static readonly bool   X64         = Environment.Is64BitOperatingSystem;
+
+        internal static string WebDriverDirectory => PluginPath + "WebDrivers\\";
+
+        internal static readonly Dictionary<BrowserType, string> WebDriverPaths = new Dictionary<BrowserType, string> {
+            { BrowserType.IE, WebDriverDirectory + (X64 ? "IEDriverServer64.exe" : "IEDriverServer32.exe") },
+            { BrowserType.Edge, WebDriverDirectory + "EdgeWebDriver.exe" },
+            { BrowserType.Chrome, WebDriverDirectory + "ChromeDriver.exe" }
+        };
 
         // user-side options
-        public static BrowserType BrowserType         = BrowserType.IE;
+        public static BrowserType BrowserType = BrowserType.IE;
+
+        public static bool LaunchAtStartup;
+        public static bool LaunchHidden = true;
+
+        public static int BrowserWindowX;
+        public static int BrowserWindowY;
+        public static int BrowserWindowW;
+        public static int BrowserWindowH;
 
         // internals
 
@@ -32,6 +51,25 @@ namespace Browser {
                     case nameof(BrowserType):
                         Enum.TryParse(optionValue, out BrowserType);
                         break;
+                    case nameof(LaunchAtStartup):
+                        bool.TryParse(optionValue, out LaunchAtStartup);
+                        break;
+                    case nameof(LaunchHidden):
+                        bool.TryParse(optionValue, out LaunchHidden);
+                        break;
+                    //
+                    case nameof(BrowserWindowX):
+                        int.TryParse(optionValue, out BrowserWindowX);
+                        break;
+                    case nameof(BrowserWindowY):
+                        int.TryParse(optionValue, out BrowserWindowY);
+                        break;
+                    case nameof(BrowserWindowW):
+                        int.TryParse(optionValue, out BrowserWindowW);
+                        break;
+                    case nameof(BrowserWindowH):
+                        int.TryParse(optionValue, out BrowserWindowH);
+                        break;
                 }
             }
         }
@@ -45,7 +83,14 @@ namespace Browser {
                 writer.WriteComment("Serial plugin options");
                 writer.WriteStartElement("Options");
                 {
-                    WriteOption(writer, nameof(BrowserType),         BrowserType.ToString("G"));
+                    WriteOption(writer, nameof(BrowserType),     BrowserType.ToString("G"));
+                    WriteOption(writer, nameof(LaunchAtStartup), LaunchAtStartup.ToString());
+                    WriteOption(writer, nameof(LaunchHidden),    LaunchHidden.ToString());
+                    //
+                    WriteOption(writer, nameof(BrowserWindowX),  BrowserWindowX.ToString());
+                    WriteOption(writer, nameof(BrowserWindowY),  BrowserWindowY.ToString());
+                    WriteOption(writer, nameof(BrowserWindowW),  BrowserWindowW.ToString());
+                    WriteOption(writer, nameof(BrowserWindowH),  BrowserWindowH.ToString());
                 }
                 writer.WriteEndElement(); // options
                 writer.WriteEndDocument();
@@ -63,6 +108,7 @@ namespace Browser {
     public enum BrowserType {
         IE,
         Edge,
-        Chrome
+        Chrome,
+        Firefox
     }
 }
