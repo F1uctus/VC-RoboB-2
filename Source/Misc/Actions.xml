@@ -3,103 +3,228 @@
 <!--This should be in the same folder as the plugin dll-->
 <AvailableCommands>
     <command>
-        <name>Serial</name>
+        <name>Browser</name>
         <commandString />
         <info>
             <params />
-            <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial</helplink>
+            <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser</helplink>
             <description>
-                <default>Communicate with Serial/COM port compatible devices, such as Arduino.
-
-When you open the serial port, plugin generates "Serial.Received" event with port name in payload {1} and message in payload {2} every time device sends message on port.
-This event can be disabled in plugin options window.</default>
+                <default>Have control about any of most popular web browsers,
+including Chrome, Firefox &amp; Microsoft Edge.
+(To work with browser, you should install it at first)</default>
             </description>
         </info>
         <command>
-            <name>Open</name>
-            <commandString>Serial.Open</commandString>
+            <name>GoToUrl</name>
+            <commandString>Browser.GoToUrl</commandString>
             <info>
-                <params>1-3</params>
-                <parameter name="Port name RegEx pattern." type="string" optional="False" />
-                <parameter name="Baud rate to connect at." type="integer" optional="True">Default: 9600</parameter>
-                <parameter name="DTR - Restart microcontroller after connection." type="boolean" optional="True">Default: False</parameter>
-                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Open</helplink>
+                <params>2</params>
+                <parameter name="URL to navigate" type="string" optional="False" />
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#GoToUrl</helplink>
                 <description>
-                    <default>Opens and selects first port with name matching the &lt;Port name RegEx pattern&gt;.
-If you want to select one from list of opened ports, you can omit parameters starting from 2.
-After opening port you can handle incoming messages with "Serial.Received" event.
-Actions "Close", "Write" and "Micro.Upload" will work with port, selected by this action.</default>
+                    <default>&lt;Asynchronous action&gt;
+Navigates browser to specified &lt;URL&gt;.
+When page is loaded, the "Browser.PageLoaded" event triggers.
+If you want to wait until page is fully loaded, use "Browser.Wait" action.</default>
+                </description>
+            </info>
+        </command>
+        <command>
+            <name>Wait</name>
+            <commandString>Browser.Wait</commandString>
+            <info>
+                <params>0</params>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Wait</helplink>
+                <description>
+                    <default>Waits until current web page loads. Useful when you want your actions to execute synchronously.</default>
+                </description>
+            </info>
+        </command>
+        <command>
+            <name>Size</name>
+            <commandString>Browser.GetSize</commandString>
+            <info>
+                <params>0</params>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Size</helplink>
+                <description>
+                    <default>Returns size (width, height) of browser window (in pixels).</default>
+                </description>
+            </info>
+        </command>
+        <command>
+            <name>Position</name>
+            <commandString>Browser.GetPosition</commandString>
+            <info>
+                <params>0</params>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Position</helplink>
+                <description>
+                    <default>Returns (x, y) position of browser window on the screen (in pixels).</default>
                 </description>
             </info>
         </command>
         <command>
             <name>Close</name>
-            <commandString>Serial.Close</commandString>
+            <commandString>Browser.Close</commandString>
             <info>
                 <params>0</params>
-                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Close</helplink>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Close</helplink>
                 <description>
-                    <default>Closes current selected port.</default>
+                    <default>Destroys current browser instance, closing all tabs.</default>
                 </description>
             </info>
         </command>
         <command>
-            <name>Write</name>
-            <commandString>Serial.Write</commandString>
+            <name>Normalize</name>
+            <commandString>Browser.Normalize</commandString>
             <info>
-                <params>1</params>
-                <parameter name="Message to send on selected port." type="string" optional="False" />
-                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Write</helplink>
+                <params>0</params>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Normalize</helplink>
                 <description>
-                    <default>Sends a message on selected port.</default>
+                    <default>Sets browser's window to it's previous normal size. (unstable)</default>
                 </description>
             </info>
         </command>
         <command>
-            <name>GetPorts</name>
-            <commandString>Serial.GetPorts</commandString>
+            <name>Maximize</name>
+            <commandString>Browser.Maximize</commandString>
             <info>
-                <params>0-2</params>
-                <parameter name="Return more descriptive ports names. Default false." type="boolean" optional="True" />
-                <parameter name="Return only opened ports. Default false." type="boolean" optional="True" />
-                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#GetPorts</helplink>
+                <params>0</params>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Maximize</helplink>
                 <description>
-                    <default>Returns a list of available serial ports.</default>
+                    <default>Maximizes browser's window.</default>
                 </description>
             </info>
         </command>
         <command>
-            <name>Micro</name>
+            <name>Minimize</name>
+            <commandString>Browser.Minimize</commandString>
+            <info>
+                <params>0</params>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Minimize</helplink>
+                <description>
+                    <default>Minimizes browser's window.</default>
+                </description>
+            </info>
+        </command>
+        <command>
+            <name>FullScreen</name>
+            <commandString>Browser.FullScreen</commandString>
+            <info>
+                <params>0</params>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#FullScreen</helplink>
+                <description>
+                    <default>Turns browser's window to fullscreen mode.</default>
+                </description>
+            </info>
+        </command>
+        <command>
+            <name>Tab</name>
             <commandString />
             <info>
                 <params />
-                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Micro</helplink>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Tab</helplink>
                 <description>
-                    <default>Actions sending commands to microcontrollers, like Arduino and analogues.</default>
+                    <default>Actions to work with browser's tabs.</default>
                 </description>
             </info>
             <command>
-                <name>Upload</name>
-                <commandString>Serial.Micro.Upload</commandString>
+                <name>New</name>
+                <commandString>Browser.Tab.New</commandString>
                 <info>
-                    <params>2</params>
-                    <parameter name="Arduino model" type="string" optional="False">UnoR3 | NanoR3 | Micro | Mega1284 | Mega2560</parameter>
-                    <parameter name="Path to .hex sketch" type="string" optional="False">Path to sketch in .HEX format (MUST NOT CONTAIN "with_bootloader")</parameter>
-                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Serial#Upload</helplink>
+                    <params>0</params>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Tab.New</helplink>
                     <description>
-                        <default>[Asynchronous action]
-Uploads sketch in ".hex" format to Arduino board on selected port.
-You need to have Arduino IDE for this action.
-Supported models (Case insensitive):
-   UnoR3, NanoR3, Micro, Mega1284, Mega2560.
-How to make .hex file from .ino or .pde sketch?
-   - In Arduino IDE menu, choose "Sketch" -&gt; "Export Compiled Binary", or type Ctrl+Alt+S;
-   - Then go to Sketch -&gt; Show Sketch Folder.
-   2 .hex files will appear in your sketch folder.
-   IMPORTANT: To upload sketch on Arduino, select .hex file, which name does NOT contain "with_bootloader".</default>
+                        <default>Opens new tab in browser.</default>
                     </description>
                 </info>
             </command>
+            <command>
+                <name>Select</name>
+                <commandString>Browser.Tab.Select</commandString>
+                <info>
+                    <params>1</params>
+                    <parameter name="Tab title" type="string" optional="False" />
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Tab.Select</helplink>
+                    <description>
+                        <default>Selects one tab from all browser's tabs by it's title.</default>
+                    </description>
+                </info>
+            </command>
+             <command>
+                <name>SelectByNum</name>
+                <commandString>Browser.Tab.SelectByNum</commandString>
+                <info>
+                    <params>1</params>
+                    <parameter name="Tab index" type="integer" optional="False" />
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Tab.Select</helplink>
+                    <description>
+                        <default>Selects one tab from all browser's tabs by it's index number.</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>Close</name>
+                <commandString>Browser.Tab.Close</commandString>
+                <info>
+                    <params>0</params>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Tab.Close</helplink>
+                    <description>
+                        <default>Closes current selected tab.</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>Title</name>
+                <commandString>Browser.Tab.Title</commandString>
+                <info>
+                    <params>0</params>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Tab.Title</helplink>
+                    <description>
+                        <default>Returns current tab's title.</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>Url</name>
+                <commandString>Browser.Tab.Url</commandString>
+                <info>
+                    <params>0</params>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Tab.Url</helplink>
+                    <description>
+                        <default>Returns current tab's URL.</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>GetTabs</name>
+                <commandString>Browser.Tab.GetTabs</commandString>
+                <info>
+                    <params>0</params>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Tab.Url</helplink>
+                    <description>
+                        <default>Returns all opened tabs titles.</default>
+                    </description>
+                </info>
+            </command>
+        </command>
+        <command>
+            <name>Start</name>
+            <commandString>Browser.Start</commandString>
+            <info>
+                <params>2</params>
+                <parameter name="Browser type" type="string" optional="False">Chrome, Firefox, Edge, IE</parameter>
+                <parameter name="Headless" type="boolean" optional="True">Tries to open browser without window (You not able to see anything on the screen, but everything will work at background.) Useful for example, when you built a script to work with web music player remotely, and then you can launch browser without window. False by default.</parameter>
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#GoToUrl</helplink>
+                <description>
+                    <default>Starts up specified browser.
+Available browsers (case insensitive):
+  - Chrome
+  - Firefox
+  - Edge
+  - IE
+(IE - Internet Explorer)</default>
+                </description>
+            </info>
         </command>
     </command>
 </AvailableCommands>

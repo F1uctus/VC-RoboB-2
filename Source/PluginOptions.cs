@@ -15,7 +15,7 @@ namespace Browser {
         private static readonly  string optionsPath = PluginPath + "Options.xml";
         internal static readonly bool   X64         = Environment.Is64BitOperatingSystem;
 
-        internal static string WebDriverDirectory => PluginPath + "WebDrivers\\";
+        internal static string WebDriverDirectory => PluginPath + "webdrivers\\";
 
         internal static readonly Dictionary<BrowserType, string> WebDriverPaths = new Dictionary<BrowserType, string> {
             { BrowserType.IE, WebDriverDirectory + (X64 ? "IEDriverServer64.exe" : "IEDriverServer32.exe") },
@@ -24,7 +24,7 @@ namespace Browser {
         };
 
         // user-side options
-        public static BrowserType BrowserType = BrowserType.IE;
+        public static BrowserType BrowserType = BrowserType.None;
 
         public static bool LaunchAtStartup;
         public static bool LaunchHidden = true;
@@ -80,7 +80,7 @@ namespace Browser {
                 Indentation = 4
             }) {
                 writer.WriteStartDocument();
-                writer.WriteComment("Serial plugin options");
+                writer.WriteComment(nameof(Browser) + " plugin options");
                 writer.WriteStartElement("Options");
                 {
                     WriteOption(writer, nameof(BrowserType),     BrowserType.ToString("G"));
@@ -106,6 +106,7 @@ namespace Browser {
     }
 
     public enum BrowserType {
+        None,
         IE,
         Edge,
         Chrome,

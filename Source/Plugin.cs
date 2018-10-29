@@ -1,18 +1,25 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Edge;
 using OpenQA.Selenium.Firefox;
-using OpenQA.Selenium.IE;
+using OpenQA.Selenium.Support.Extensions;
+using OpenQA.Selenium.Support.UI;
 using PluginInterface;
+using Keys = OpenQA.Selenium.Keys;
 
 namespace Browser {
     public class Plugin : IPlugin {
         private static IWebDriver webDriver;
+        private static Size savedNormalSize;
+        private static bool isPageLoaded = false;
         private static bool isHidden;
         private static IWebElement currentElement; // TODO: use currentElement in actions
 
@@ -98,7 +105,7 @@ namespace Browser {
             }
             string actionName1 = actionNameArray[1].ToUpper();
             if (webDriver == null
-             && actionName1 != "SETUP") {
+             && actionName1 != "START") {
                 ar.setError("No web browser opened or selected.");
                 return ar;
             }
@@ -112,21 +119,34 @@ namespace Browser {
                             ar.setError("'Url' parameter missing.");
                         }
                         else {
-                            if (!actionParameters[0].StartsWith(""))
+                            if (!actionParameters[0].StartsWith("http://") ||
+                                !actionParameters[0].StartsWith("https://")) {
+                                actionParameters[0] = "https://" + actionParameters[0];
+                            }
                             try {
-                                webDriver.Navigate().GoToUrl(actionParameters[0]);
+                                isPageLoaded = false;
+                                Task.Run(() => webDriver.Navigate().GoToUrl(actionParameters[0]));
+                                isPageLoaded = true;
+                                HostInstance.triggerEvent("Browser.PageLoaded", new List<string>(0));
                             }
                             catch (Exception ex) {
                                 ar.setError("Failed to open specified URL:\n" + ex);
                                 break;
                             }
-                            ar.setInfo("OK.");
+                            ar.setInfo("Page loading started.");
+                        }
+                        break;
+                    }
+
+                    case "WAIT": {
+                        while (!isPageLoaded) {
+                            Thread.Sleep(10);
                         }
                         break;
                     }
 
                     // window size and location
-                    case "SIZE": {
+                    case "GETSIZE": {
                         // get
                         if (actionParameters.Length == 0) {
                             Size size = webDriver.Manage().Window.Size;
@@ -150,7 +170,7 @@ namespace Browser {
                         break;
                     }
 
-                    case "LOCATION": {
+                    case "GETPOSITION": {
                         // get
                         if (actionParameters.Length == 0) {
                             Point position = webDriver.Manage().Window.Position;
@@ -175,58 +195,102 @@ namespace Browser {
                     }
 
                     // change window state
+                    case "NORMALIZE": {
+                        webDriver.Manage().Window.Size = savedNormalSize;
+                        break;
+                    }
+
                     case "MAXIMIZE": {
+                        savedNormalSize = webDriver.Manage().Window.Size;
                         webDriver.Manage().Window.Maximize();
                         break;
                     }
 
                     case "MINIMIZE": {
+                        savedNormalSize = webDriver.Manage().Window.Size;
                         webDriver.Manage().Window.Minimize();
                         break;
                     }
 
                     case "FULLSCREEN": {
+                        savedNormalSize = webDriver.Manage().Window.Size;
                         webDriver.Manage().Window.FullScreen();
                         break;
                     }
 
                     #region Working with tabs
 
-                    case "SELECTTAB": {
-                        if (actionParameters.Length == 0) {
-                            ar.setError("'Tab name' parameter missing.");
+                    case "TAB": {
+                        if (actionNameArray.Length < 3) {
+                            ar.setError(unknownAction);
+                            break;
                         }
-                        else {
-                            if (SelectWindow(actionParameters[0])) {
-                                ar.setInfo("OK.");
+                        switch (actionNameArray[2].ToUpper()) {
+                            case "NEW": {
+                                webDriver.ExecuteJavaScript("window.open('','_blank');");
+                                break;
                             }
-                            else {
-                                ar.setError("Cannot find tab with specified name.");
+
+                            case "SELECT": {
+                                if (actionParameters.Length == 0) {
+                                    ar.setError("'Tab name' parameter missing.");
+                                }
+                                else if (SelectWindow(actionParameters[0])) {
+                                    ar.setInfo("OK.");
+                                }
+                                else {
+                                    ar.setError("Cannot find tab with specified name.");
+                                }
+                                break;
+                            }
+
+                            case "SELECTBYNUM": {
+                                int tabNumber = 0;
+                                if (actionParameters.Length == 0) {
+                                    ar.setError("'Tab index' parameter missing.");
+                                }
+                                else if (int.TryParse(actionParameters[0], out tabNumber)
+                                      || tabNumber - 1 > webDriver.WindowHandles.Count) {
+                                    webDriver.SwitchTo().Window(webDriver.WindowHandles[tabNumber - 1]);
+                                    ar.setInfo("OK.");
+                                }
+                                else {
+                                    ar.setError("Cannot find tab with specified name.");
+                                }
+                                break;
+                            }
+
+                            case "CLOSE": {
+                                webDriver.Close();
+                                break;
+                            }
+
+                            case "TITLE": {
+                                ar.setSuccess(webDriver.Title);
+                                break;
+                            }
+
+                            case "URL": {
+                                ar.setSuccess(webDriver.Url);
+                                break;
+                            }
+
+                            case "GETTABS": {
+                                ar.setSuccess(string.Join("\n", webDriver.WindowHandles));
+                                break;
+                            }
+
+                            default: {
+                                ar.setError(unknownAction);
+                                break;
                             }
                         }
-                        break;
-                    }
-
-                    case "CLOSETAB": {
-                        webDriver.Close();
-                        break;
-                    }
-
-                    case "NEWTAB": {
-                        //var a = Keys.Control | Keys.T;
-                        //webDriver.FindElement(By.XPath("body")).SendKeys(a.ToString());
-                        // SendKeys?
-                        break;
-                    }
-
-                    case "GETTABS": {
-                        ar.setSuccess(string.Join("\n", webDriver.WindowHandles));
                         break;
                     }
 
                     #endregion
 
-                    #region Manipulating browsers
+                    #region Browser start/stop
 
                     case "START": {
                         bool headless = PluginOptions.LaunchHidden;
@@ -301,10 +365,11 @@ namespace Browser {
         public void Dispose() {
             // You must release all unmanaged resources here when program is stopped to prevent the memory leaks.
             if (webDriver != null) {
-                PluginOptions.BrowserWindowX = webDriver.Manage().Window.Position.X;
-                PluginOptions.BrowserWindowY = webDriver.Manage().Window.Position.Y;
-                PluginOptions.BrowserWindowW = webDriver.Manage().Window.Size.Width;
-                PluginOptions.BrowserWindowH = webDriver.Manage().Window.Size.Height;
+                IWindow window = webDriver.Manage().Window;
+                PluginOptions.BrowserWindowX = window.Position.X;
+                PluginOptions.BrowserWindowY = window.Position.Y;
+                PluginOptions.BrowserWindowW = window.Size.Width;
+                PluginOptions.BrowserWindowH = window.Size.Height;
 
                 for (int i = 0; i < webDriver?.WindowHandles.Count; i++) {
                     webDriver.Close();
@@ -319,21 +384,21 @@ namespace Browser {
         internal static void StartWebDriver(bool headless) {
             isHidden = headless;
             switch (PluginOptions.BrowserType) {
-                case BrowserType.IE: {
-                    var driverService = InternetExplorerDriverService.CreateDefaultService();
-                    driverService.HideCommandPromptWindow = true;
-                    //
-                    webDriver = new InternetExplorerDriver(driverService);
-                    break;
-                }
+                //case BrowserType.IE: {
+                //    var driverService = InternetExplorerDriverService.CreateDefaultService();
+                //    driverService.HideCommandPromptWindow = true;
+                //    //
+                //    webDriver = new InternetExplorerDriver(driverService);
+                //    break;
+                //}
                 case BrowserType.Edge: {
                     if (headless) {
-                        MessageBox.Show("Browser plugin: Microsoft Edge cannot work without window yet.", "Browser plugin error");
+                        MessageBox.Show("Browser plugin: Microsoft Edge cannot work without window.", "Browser plugin error");
                         return;
                     }
                     var driverService = EdgeDriverService.CreateDefaultService();
                     driverService.HideCommandPromptWindow = true;
-                    //
+                    
                     webDriver = new EdgeDriver(driverService);
                     break;
                 }
@@ -344,7 +409,7 @@ namespace Browser {
                     if (headless) {
                         options.AddArgument("--headless");
                     }
-                    //
+                    
                     webDriver = new ChromeDriver(driverService, options);
                     // hide log: options.AddArgument("--log-level=3");
                     break;
@@ -356,12 +421,12 @@ namespace Browser {
                     if (headless) {
                         options.AddArgument("--headless");
                     }
-                    //
+                    
                     webDriver = new FirefoxDriver(driverService, options);
                     break;
                 }
                 default: {
-                    MessageBox.Show(nameof(Browser) + " plugin error: Invalid browser selected.");
+                    MessageBox.Show(nameof(Browser) + " plugin error: Invalid browser selected: " + PluginOptions.BrowserType.ToString("G"));
                     break;
                 }
             }
@@ -372,16 +437,22 @@ namespace Browser {
         internal static bool SelectWindow(string titleSubstring) {
             string currentWindow = webDriver.CurrentWindowHandle;
 
-            foreach (string w in webDriver.WindowHandles) {
-                if (w != currentWindow) {
-                    webDriver.SwitchTo().Window(w);
-                    if (webDriver.Title.Contains(titleSubstring))
+            for (var i = 0; i < webDriver.WindowHandles.Count; i++) {
+                if (webDriver.WindowHandles[i] != currentWindow) {
+                    webDriver.SwitchTo().Window(webDriver.WindowHandles[i]);
+                    if (webDriver.Title.Contains(titleSubstring)) {
                         return true;
+                    }
 
                     webDriver.SwitchTo().Window(currentWindow);
                 }
             }
             return false;
+        }
+
+        internal static void WaitWindowLoad() {
+            new WebDriverWait(webDriver, webDriver.Manage().Timeouts().PageLoad).Until(
+                d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").Equals("complete"));
         }
 
         #endregion

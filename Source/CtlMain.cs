@@ -32,6 +32,8 @@ namespace Browser {
             comboBrowserType.DisplayMember = "Key";
             comboBrowserType.ValueMember   = "Value";
             comboBrowserType.SelectedItem  = browserTypes.First(kvp => kvp.Value == PluginOptions.BrowserType);
+            cbLaunchAtStartup.Checked      = PluginOptions.LaunchAtStartup;
+            cbLaunchHidden.Checked         = PluginOptions.LaunchHidden;
         }
 
         private void btSave_Click(object sender, EventArgs e) {
