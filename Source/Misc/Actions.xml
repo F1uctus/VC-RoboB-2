@@ -118,6 +118,66 @@ If you want to wait until page is fully loaded, use "Browser.Wait" action.</defa
             </info>
         </command>
         <command>
+            <name>Element</name>
+            <commandString />
+            <info>
+                <params />
+                <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element</helplink>
+                <description>
+                    <default>Actions to work with elements on the web page.</default>
+                </description>
+            </info>
+            <command>
+                <name>Find</name>
+                <commandString>Browser.Element.Find</commandString>
+                <info>
+                    <params>2</params>
+                    <parameter name="Selector" type="string" optional="False" />
+                    <parameter name="Selector value" type="string" optional="False" />
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.Find</helplink>
+                    <description>
+                        <default>Finds element by 'Selector'
+Valid selectors are (case insensitive): id, class, css, name, tag, linktext, xpath.
+You should add appropriate a valid 'Selector value' as second parameter.</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>Click</name>
+                <commandString>Browser.Element.Click</commandString>
+                <info>
+                    <params>0</params>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.Click</helplink>
+                    <description>
+                        <default></default>
+                    </description>
+                </info>
+            </command>
+             <command>
+                <name>Input</name>
+                <commandString>Browser.Element.Input</commandString>
+                <info>
+                    <params>1</params>
+                    <parameter name="Text to write" type="string" optional="False" />
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.Input</helplink>
+                    <description>
+                        <default>Inputs 'Text to write' to current element.</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>GetParent</name>
+                <commandString>Browser.Element.Parent</commandString>
+                <info>
+                    <params>0</params>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.Parent</helplink>
+                    <description>
+                        <default>Returns parent of current element.</default>
+                    </description>
+                </info>
+            </command>
+        </command>
+        <command>
             <name>Tab</name>
             <commandString />
             <info>

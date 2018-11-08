@@ -138,8 +138,11 @@
   <PropertyGroup>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>xcopy $(TargetPath) C:\Users\Fluctus\Documents\Code\CSharp\VoiceEngineer\bin\Debug\plugins\Browser /s /y
+xcopy $(TargetPath) C:\Users\Fluctus\Documents\Code\CSharp\VoxCommando\Vox\2240\plugins\Browser /s /y
+
+xcopy $(ProjectDir)Misc\Actions.xml C:\Users\Fluctus\Documents\Code\CSharp\VoiceEngineer\bin\Debug\plugins\Browser /s /y
+xcopy $(ProjectDir)Misc\Actions.xml C:\Users\Fluctus\Documents\Code\CSharp\VoxCommando\Vox\2240\plugins\Browser /s /y</PostBuildEvent>
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -152,4 +155,8 @@
   <Import Project="..\packages\Selenium.WebDriver.IEDriver.3.14.0\build\Selenium.WebDriver.IEDriver.targets" Condition="Exists('..\packages\Selenium.WebDriver.IEDriver.3.14.0\build\Selenium.WebDriver.IEDriver.targets')" />
   <Import Project="..\packages\Selenium.Chrome.WebDriver.2.43\build\Selenium.Chrome.WebDriver.targets" Condition="Exists('..\packages\Selenium.Chrome.WebDriver.2.43\build\Selenium.Chrome.WebDriver.targets')" />
   <Import Project="..\packages\Selenium.Firefox.WebDriver.0.22.0\build\Selenium.Firefox.WebDriver.targets" Condition="Exists('..\packages\Selenium.Firefox.WebDriver.0.22.0\build\Selenium.Firefox.WebDriver.targets')" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
 </Project>

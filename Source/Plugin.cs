@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -10,17 +12,17 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Edge;
 using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.IE;
 using OpenQA.Selenium.Support.Extensions;
 using OpenQA.Selenium.Support.UI;
 using PluginInterface;
-using Keys = OpenQA.Selenium.Keys;
 
 namespace Browser {
     public class Plugin : IPlugin {
-        private static IWebDriver webDriver;
-        private static Size savedNormalSize;
-        private static bool isPageLoaded = false;
-        private static bool isHidden;
+        private static IWebDriver  webDriver;
+        private static Size        savedNormalSize;
+        private static bool        isPageLoaded = false;
+        private static bool        isHidden;
         private static IWebElement currentElement; // TODO: use currentElement in actions
 
         internal static CtlMain MainCtl;
@@ -61,7 +63,7 @@ namespace Browser {
             get { return HostInstance; }
             set {
                 HostInstance = value;
-                MainCtl = (CtlMain)MainInterface;
+                MainCtl      = (CtlMain) MainInterface;
             }
         }
 
@@ -70,7 +72,7 @@ namespace Browser {
         #endregion
 
         public Plugin() {
-            MainCtl = new CtlMain();
+            MainCtl       = new CtlMain();
             MainInterface = MainCtl;
         }
 
@@ -97,7 +99,7 @@ namespace Browser {
         /// <param name="actionParameters">An array of strings representing our action parameters.</param>
         /// <returns>an actionResult</returns>
         public actionResult doAction(string[] actionNameArray, string[] actionParameters) {
-            var ar = new actionResult();
+            var          ar            = new actionResult();
             const string unknownAction = "Unknown " + nameof(Browser) + " plugin action.";
             if (actionNameArray.Length < 2) {
                 ar.setError(unknownAction);
@@ -125,9 +127,13 @@ namespace Browser {
                             }
                             try {
                                 isPageLoaded = false;
-                                Task.Run(() => webDriver.Navigate().GoToUrl(actionParameters[0]));
-                                isPageLoaded = true;
-                                HostInstance.triggerEvent("Browser.PageLoaded", new List<string>(0));
+                                Task.Run(
+                                    () => {
+                                        webDriver.Navigate().GoToUrl(actionParameters[0]);
+                                        isPageLoaded = true;
+                                        HostInstance.triggerEvent("Browser.PageLoaded", new List<string>(0));
+                                    }
+                                );
                             }
                             catch (Exception ex) {
                                 ar.setError("Failed to open specified URL:\n" + ex);
@@ -218,6 +224,177 @@ namespace Browser {
                         break;
                     }
 
+                    case "ELEMENT": {
+                        if (actionNameArray.Length < 3) {
+                            ar.setError(unknownAction);
+                            break;
+                        }
+                        switch (actionNameArray[2].ToUpper()) {
+                            case "FIND": {
+                                if (actionParameters.Length == 0) {
+                                    ar.setError("'Selector' parameter missing.");
+                                    return ar;
+                                }
+                                if (actionParameters.Length == 1) {
+                                    ar.setError("'Selector value' parameter missing.");
+                                    return ar;
+                                }
+                                // selector parameter
+                                By selector;
+                                switch (actionParameters[0].ToUpper()) {
+                                    case "ID": {
+                                        selector = By.Id(actionParameters[1]);
+                                        break;
+                                    }
+                                    case "CLASS": {
+                                        selector = By.ClassName(actionParameters[1]);
+                                        break;
+                                    }
+                                    case "CSS": {
+                                        selector = By.CssSelector(actionParameters[1]);
+                                        break;
+                                    }
+                                    case "NAME": {
+                                        selector = By.Name(actionParameters[1]);
+                                        break;
+                                    }
+                                    case "TAG": {
+                                        selector = By.TagName(actionParameters[1]);
+                                        break;
+                                    }
+                                    case "LINKTEXT": {
+                                        selector = By.LinkText(actionParameters[1]);
+                                        break;
+                                    }
+                                    case "PARTIALLINKTEXT": {
+                                        selector = By.PartialLinkText(actionParameters[1]);
+                                        break;
+                                    }
+                                    case "XPATH": {
+                                        selector = By.XPath(actionParameters[1]);
+                                        break;
+                                    }
+                                    default: {
+                                        ar.setError("Invalid 'Selector' parameter.");
+                                        return ar;
+                                    }
+                                }
+                                ReadOnlyCollection<IWebElement> elements = webDriver.FindElements(selector);
+                                if (elements.Count == 0) {
+                                    ar.setError("Cannot find element with specified value. Check your 'Selector value' parameter.");
+                                }
+                                else {
+                                    currentElement = elements[0];
+                                    ar.setInfo("Element found.");
+                                }
+                                break;
+                            }
+                            case "INPUT": {
+                                if (currentElement == null) {
+                                    ar.setError("No element selected.");
+                                    return ar;
+                                }
+                                if (actionParameters.Length == 0) {
+                                    ar.setError("'Text to write' parameter missing.");
+                                    return ar;
+                                }
+                                currentElement.SendKeys(actionParameters[0]);
+                                ar.setInfo("OK.");
+                                break;
+                            }
+                            case "CLICK": {
+                                if (currentElement == null) {
+                                    ar.setError("No element selected.");
+                                    return ar;
+                                }
+                                currentElement.Click();
+                                ar.setInfo("OK.");
+                                break;
+                            }
+                            case "GETATTR": {
+                                // value of specified attribute for this element.
+                                if (currentElement == null) {
+                                    ar.setError("No element selected.");
+                                    return ar;
+                                }
+                                if (actionParameters.Length == 1) {
+                                    ar.setError("'Attribute name' parameter missing.");
+                                    return ar;
+                                }
+                                string attrValue;
+                                try {
+                                    attrValue = currentElement.GetAttribute(actionParameters[0]);
+                                }
+                                catch (StaleElementReferenceException) {
+                                    ar.setError("Reference to current element is no longer valid.");
+                                    return ar;
+                                }
+                                ar.setSuccess(attrValue);
+                                break;
+                            }
+                            case "GETPROP": {
+                                // JavaScript property of the element.
+                                if (currentElement == null) {
+                                    ar.setError("No element selected.");
+                                    return ar;
+                                }
+                                if (actionParameters.Length == 1) {
+                                    ar.setError("'JS property name' parameter missing.");
+                                    return ar;
+                                }
+                                string attrValue;
+                                try {
+                                    attrValue = currentElement.GetProperty(actionParameters[0]);
+                                }
+                                catch (StaleElementReferenceException) {
+                                    ar.setError("Reference to current element is no longer valid.");
+                                    return ar;
+                                }
+                                ar.setSuccess(attrValue);
+                                break;
+                            }
+                            case "GETCSS": {
+                                // value of CSS property of current element.
+                                if (currentElement == null) {
+                                    ar.setError("No element selected.");
+                                    return ar;
+                                }
+                                if (actionParameters.Length == 1) {
+                                    ar.setError("'CSS property name' parameter missing.");
+                                    return ar;
+                                }
+                                string attrValue;
+                                try {
+                                    attrValue = currentElement.GetCssValue(actionParameters[0]);
+                                }
+                                catch (StaleElementReferenceException) {
+                                    ar.setError("Reference to current element is no longer valid.");
+                                    return ar;
+                                }
+                                ar.setSuccess(attrValue);
+                                break;
+                            }
+                            case "GETPARENT": {
+                                if (currentElement == null) {
+                                    ar.setError("No element selected.");
+                                    return ar;
+                                }
+                                try {
+                                    currentElement.FindElement(By.XPath("//span/parent::*"));
+                                }
+                                catch (NoSuchElementException) {
+                                    ar.setError("Cannot find parent of current element.");
+                                }
+                                break;
+                            }
+                            default: {
+                                ar.setError(unknownAction);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+
                     #region Working with tabs
 
                     case "TAB": {
@@ -228,6 +405,7 @@ namespace Browser {
                         switch (actionNameArray[2].ToUpper()) {
                             case "NEW": {
                                 webDriver.ExecuteJavaScript("window.open('','_blank');");
+                                webDriver.SwitchTo().Window(webDriver.WindowHandles.Last());
                                 break;
                             }
 
@@ -262,6 +440,7 @@ namespace Browser {
 
                             case "CLOSE": {
                                 webDriver.Close();
+                                webDriver?.SwitchTo().Window(webDriver.WindowHandles.Last());
                                 break;
                             }
 
@@ -377,6 +556,10 @@ namespace Browser {
                 webDriver.Quit();
                 webDriver.Dispose();
             }
+            // kill all left browser processes
+            foreach (var process in Process.GetProcessesByName(PluginOptions.WebDriverFileNames[PluginOptions.BrowserType].Replace(".exe", ""))) {
+                process.Kill();
+            }
         }
 
         #region Other methods
@@ -384,44 +567,56 @@ namespace Browser {
         internal static void StartWebDriver(bool headless) {
             isHidden = headless;
             switch (PluginOptions.BrowserType) {
-                //case BrowserType.IE: {
-                //    var driverService = InternetExplorerDriverService.CreateDefaultService();
-                //    driverService.HideCommandPromptWindow = true;
-                //    //
-                //    webDriver = new InternetExplorerDriver(driverService);
-                //    break;
-                //}
+                case BrowserType.IE: {
+                    var driverService = InternetExplorerDriverService.CreateDefaultService(
+                        PluginOptions.WebDriverDirectory,
+                        PluginOptions.WebDriverFileNames[PluginOptions.BrowserType]
+                    );
+                    driverService.HideCommandPromptWindow = true;
+                    //
+                    webDriver = new InternetExplorerDriver(driverService);
+                    break;
+                }
                 case BrowserType.Edge: {
                     if (headless) {
                         MessageBox.Show("Browser plugin: Microsoft Edge cannot work without window.", "Browser plugin error");
                         return;
                     }
-                    var driverService = EdgeDriverService.CreateDefaultService();
+                    var driverService = EdgeDriverService.CreateDefaultService(
+                        PluginOptions.WebDriverDirectory,
+                        PluginOptions.WebDriverFileNames[PluginOptions.BrowserType]
+                    );
                     driverService.HideCommandPromptWindow = true;
-                    
+
                     webDriver = new EdgeDriver(driverService);
                     break;
                 }
                 case BrowserType.Chrome: {
-                    var driverService = ChromeDriverService.CreateDefaultService();
+                    var driverService = ChromeDriverService.CreateDefaultService(
+                        PluginOptions.WebDriverDirectory,
+                        PluginOptions.WebDriverFileNames[PluginOptions.BrowserType]
+                    );
                     driverService.HideCommandPromptWindow = true;
                     var options = new ChromeOptions();
                     if (headless) {
                         options.AddArgument("--headless");
                     }
-                    
+
                     webDriver = new ChromeDriver(driverService, options);
                     // hide log: options.AddArgument("--log-level=3");
                     break;
                 }
                 case BrowserType.Firefox: {
-                    var driverService = FirefoxDriverService.CreateDefaultService();
+                    var driverService = FirefoxDriverService.CreateDefaultService(
+                        PluginOptions.WebDriverDirectory,
+                        PluginOptions.WebDriverFileNames[PluginOptions.BrowserType]
+                    );
                     driverService.HideCommandPromptWindow = true;
                     var options = new FirefoxOptions();
                     if (headless) {
                         options.AddArgument("--headless");
                     }
-                    
+
                     webDriver = new FirefoxDriver(driverService, options);
                     break;
                 }
@@ -452,7 +647,8 @@ namespace Browser {
 
         internal static void WaitWindowLoad() {
             new WebDriverWait(webDriver, webDriver.Manage().Timeouts().PageLoad).Until(
-                d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").Equals("complete"));
+                d => ((IJavaScriptExecutor) d).ExecuteScript("return document.readyState").Equals("complete")
+            );
         }
 
         #endregion

@@ -17,10 +17,10 @@ namespace Browser {
 
         internal static string WebDriverDirectory => PluginPath + "webdrivers\\";
 
-        internal static readonly Dictionary<BrowserType, string> WebDriverPaths = new Dictionary<BrowserType, string> {
-            { BrowserType.IE, WebDriverDirectory + (X64 ? "IEDriverServer64.exe" : "IEDriverServer32.exe") },
-            { BrowserType.Edge, WebDriverDirectory + "EdgeWebDriver.exe" },
-            { BrowserType.Chrome, WebDriverDirectory + "ChromeDriver.exe" }
+        internal static readonly Dictionary<BrowserType, string> WebDriverFileNames = new Dictionary<BrowserType, string> {
+            { BrowserType.IE, X64 ? "IEDriverServer64.exe" : "IEDriverServer32.exe" },
+            { BrowserType.Edge, "EdgeWebDriver.exe" },
+            { BrowserType.Chrome, "ChromeDriver.exe" }
         };
 
         // user-side options
