@@ -128,6 +128,24 @@ If you want to wait until page is fully loaded, use "Browser.Wait" action.</defa
                 </description>
             </info>
             <command>
+                <name>FindRoot</name>
+                <commandString>Browser.Element.FindRoot</commandString>
+                <info>
+                    <params>2</params>
+                    <parameter name="Selector" type="string" optional="False" />
+                    <parameter name="Selector value" type="string" optional="False" />
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.FindRoot</helplink>
+                    <description>
+                        <default>Finds element by 'Selector' from root of the page.
+Valid selectors are (case insensitive): ID, Class, CSS, Name, Tag, LinkText, XPath.
+You should add appropriate a valid 'Selector value' as second parameter.
+Count of found elements passed in {LastResult}.
+Then you can iterate through each element with
+loop from 0 to {LastResult} and 'Browser.Element.Select' action.</default>
+                    </description>
+                </info>
+            </command>
+            <command>
                 <name>Find</name>
                 <commandString>Browser.Element.Find</commandString>
                 <info>
@@ -136,9 +154,31 @@ If you want to wait until page is fully loaded, use "Browser.Wait" action.</defa
                     <parameter name="Selector value" type="string" optional="False" />
                     <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.Find</helplink>
                     <description>
-                        <default>Finds element by 'Selector'
-Valid selectors are (case insensitive): id, class, css, name, tag, linktext, xpath.
-You should add appropriate a valid 'Selector value' as second parameter.</default>
+                        <default>Finds element by 'Selector' from selected element children.
+Valid selectors are (case insensitive): ID, Class, CSS, Name, Tag, LinkText, XPath.
+You should add appropriate a valid 'Selector value' as second parameter.
+Count of found elements passed in {LastResult}.
+Then you can iterate through each element with
+loop from 0 to {LastResult} and 'Browser.Element.Select' action.
+
+If you use XPath: in Chrome-like browsers,
+you can get XPath of the element this way:
+press [F12] (Developer Tools) -> Find needed element
+-> press RMB -> Copy -> Copy XPath.</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>Select</name>
+                <commandString>Browser.Element.Select</commandString>
+                <info>
+                    <params>2</params>
+                    <parameter name="Index of element" type="integer" optional="False" />
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.Select</helplink>
+                    <description>
+                        <default>Selects element from elements found
+on the page through 'Find' action by &lt;Index&gt; starting from 1.
+You can omit the &lt;Index&gt; parameter if there is only 1 found element.</default>
                     </description>
                 </info>
             </command>
@@ -149,7 +189,7 @@ You should add appropriate a valid 'Selector value' as second parameter.</defaul
                     <params>0</params>
                     <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.Click</helplink>
                     <description>
-                        <default></default>
+                        <default>Clicks the selected element.</default>
                     </description>
                 </info>
             </command>
@@ -161,18 +201,29 @@ You should add appropriate a valid 'Selector value' as second parameter.</defaul
                     <parameter name="Text to write" type="string" optional="False" />
                     <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.Input</helplink>
                     <description>
-                        <default>Inputs 'Text to write' to current element.</default>
+                        <default>Inputs 'Text to write' to the selected element.</default>
+                    </description>
+                </info>
+            </command>
+            <command>
+                <name>GetVisibleText</name>
+                <commandString>Browser.Element.GetVisibleText</commandString>
+                <info>
+                    <params>0</params>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.GetVisibleText</helplink>
+                    <description>
+                        <default>Returns all visible text in selected element.</default>
                     </description>
                 </info>
             </command>
             <command>
                 <name>GetParent</name>
-                <commandString>Browser.Element.Parent</commandString>
+                <commandString>Browser.Element.GetParent</commandString>
                 <info>
                     <params>0</params>
-                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.Parent</helplink>
+                    <helplink>http://voxcommando.com/mediawiki/index.php?title=Plugin_Browser#Element.GetParent</helplink>
                     <description>
-                        <default>Returns parent of current element.</default>
+                        <default>Returns parent of selected element.</default>
                     </description>
                 </info>
             </command>

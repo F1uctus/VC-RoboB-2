@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Management;
 using System.Windows.Forms;
+// ReSharper disable LocalizableElement
 
 namespace Browser {
     public partial class CtlMain : UserControl {
@@ -12,26 +13,30 @@ namespace Browser {
 
             // Bind combobox to dictionary
             var browserTypes = new Dictionary<string, BrowserType> {
-                { "Google Chrome (Chromium)", BrowserType.Chrome },
+                { "Google Chrome", BrowserType.Chrome },
+                { "Firefox", BrowserType.Firefox },
                 { "Internet Explorer", BrowserType.IE }
             };
 
-            string winVersionCaption = "";
-            using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem")) {
-                foreach (var o in searcher.Get()) {
-                    var obj = (ManagementObject) o;
-                    winVersionCaption = obj["Caption"].ToString();
+            {
+                // check windows version
+                // (add Edge for Win10)
+                var winVersionCaption = "";
+                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem")) {
+                    foreach (ManagementBaseObject o in searcher.Get()) {
+                        var obj = (ManagementObject) o;
+                        winVersionCaption = obj["Caption"].ToString();
+                    }
                 }
-            }
-            // check for Windows 10
-            if (winVersionCaption.Contains("Windows 10")) {
-                browserTypes.Add("Microsoft Edge", BrowserType.Edge);
+                if (winVersionCaption.Contains("Windows 10")) {
+                    browserTypes.Add("Microsoft Edge", BrowserType.Edge);
+                }
             }
 
             comboBrowserType.DataSource    = new BindingSource(browserTypes, null);
             comboBrowserType.DisplayMember = "Key";
             comboBrowserType.ValueMember   = "Value";
-            comboBrowserType.SelectedItem  = browserTypes.First(kvp => kvp.Value == PluginOptions.BrowserType);
+            comboBrowserType.SelectedItem  = browserTypes.FirstOrDefault(kvp => kvp.Value == PluginOptions.BrowserType);
             cbLaunchAtStartup.Checked      = PluginOptions.LaunchAtStartup;
             cbLaunchHidden.Checked         = PluginOptions.LaunchHidden;
         }
